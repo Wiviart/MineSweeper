@@ -29,6 +29,7 @@ public class Board : MonoBehaviour
         GetBoardSize();
         DrawBoard();
         SetMine();
+        SetNumber();
     }
     void GetBoardSize()
     {
@@ -65,7 +66,7 @@ public class Board : MonoBehaviour
             if (cells[x, y].type == Cell.Type.Mine) continue;
 
             cells[x, y].type = Cell.Type.Mine;
-            cells[x, y].spriteRdr.sprite = cellSpecialSpt[1];
+            // cells[x, y].spriteRdr.sprite = cellSpecialSpt[1];
             c++;
         }
     }
@@ -90,7 +91,9 @@ public class Board : MonoBehaviour
                     }
                 }
 
-                CreateCell(x, y, cellNumberSpt[count], Cell.Type.Number);
+                // cells[x, y].spriteRdr.sprite = cellNumberSpt[count];
+                cells[x, y].type = Cell.Type.Number;
+                cells[x, y].index = count;
             }
         }
     }
@@ -125,5 +128,126 @@ public class Board : MonoBehaviour
     public Cell GetCell(float x, float y)
     {
         return cells[(int)x, (int)y];
+    }
+
+    public void RevealCell(int x, int y)
+    {
+        if (x < 0 || y < 0 || x >= width || y >= height) return;
+        if (cells[x, y].isFlagged) return;
+
+        Cell.Type type = cells[x, y].type;
+
+        switch (type)
+        {
+            case Cell.Type.Number:
+                {
+                    FloodCell(x, y);
+                    break;
+                }
+            case Cell.Type.Mine:
+                {
+                    Explode(x, y);
+                    break;
+                }
+        }
+    }
+
+    public void FlagCell(int x, int y)
+    {
+        if (cells[x, y].isRevealed) return;
+
+        if (cells[x, y].isFlagged)
+        {
+            cells[x, y].spriteRdr.sprite = cellSpecialSpt[0];
+            cells[x, y].isFlagged = false;
+        }
+        else
+        {
+            cells[x, y].spriteRdr.sprite = cellSpecialSpt[2];
+            cells[x, y].isFlagged = true;
+        }
+    }
+    public void FloodCell(int x, int y)
+    {
+        if (cells[x, y].isRevealed) return;
+
+        if (cells[x, y].isFlagged || cells[x, y].type == Cell.Type.Mine) return;
+
+        cells[x, y].spriteRdr.sprite = cellNumberSpt[cells[x, y].index];
+        cells[x, y].isRevealed = true;
+
+        if (cells[x, y].index == 0)
+        {
+            for (int i = -1; i <= 1; i++)
+            {
+                for (int j = -1; j <= 1; j++)
+                {
+                    if (x + i < 0 || y + j < 0 || x + i >= width || y + j >= height) continue;
+
+                    if (x + i == x && y + j == y) continue;
+
+                    FloodCell(x + i, y + j);
+                }
+            }
+
+        }
+    }
+
+    void SetCellStatus(int x, int y)
+    {
+        Cell.Type type = cells[x, y].type;
+
+        switch (type)
+        {
+            case Cell.Type.Number:
+                {
+                    if (cells[x, y].index == 0)
+
+                        cells[x, y].spriteRdr.sprite = cellNumberSpt[cells[x, y].index];
+                    break;
+                }
+            case Cell.Type.Mine:
+                {
+                    cells[x, y].spriteRdr.sprite = cellSpecialSpt[1];
+                    break;
+                }
+        }
+    }
+
+    void Explode(int x, int y)
+    {
+        foreach (Cell c in cells)
+        {
+            if (c.type == Cell.Type.Mine)
+            {
+                if (c.isFlagged) continue;
+
+                c.spriteRdr.sprite = cellSpecialSpt[1];
+                c.isRevealed = true;
+            }
+        }
+
+        cells[x, y].spriteRdr.sprite = cellSpecialSpt[3];
+
+        GameManager.instance.EndgameTrigger();
+    }
+
+    public bool AllNumberCellReveal()
+    {
+        int count = mine;
+
+        foreach (Cell c in cells)
+        {
+            if (c.type == Cell.Type.Mine && c.isFlagged) count--;
+        }
+
+        if (count == 0) return true;
+
+        foreach (Cell c in cells)
+        {
+            if (c.type == Cell.Type.Mine) continue;
+            if (!c.isRevealed) return false;
+        }
+        return true;
     }
 }

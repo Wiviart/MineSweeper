@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -20,7 +22,15 @@ public class GameManager : MonoBehaviour
     {
         board = FindObjectOfType<Board>();
     }
+
     /**********************************************************************************************************/
+
+    public Action endgameAction;
+    public void EndgameTrigger()
+    {
+        endgameAction?.Invoke();
+    }
+
     /**********************************************************************************************************/
 
     [SerializeField][Range(1, 7)] int difficult;
@@ -29,10 +39,24 @@ public class GameManager : MonoBehaviour
         CenterCamera();
         SetMineNumber(difficult);
         board.SetUpNewGame();
+
+        endgameAction += NewGame;
     }
+
+    bool canInput = true;
     void Update()
     {
-        if (Input.GetMouseButtonDown(0)) RevealCell();
+        if (canInput)
+        {
+            if (Input.GetMouseButtonDown(0)) RevealCell();
+            if (Input.GetMouseButtonDown(1)) FlagCell();
+        }
+
+        if (board.AllNumberCellReveal())
+        {
+            Debug.Log("Win");
+            EndgameTrigger();
+        }
     }
     void CenterCamera()
     {
@@ -74,11 +98,30 @@ public class GameManager : MonoBehaviour
 
     void RevealCell()
     {
-        Vector2 position = (Camera.main.ScreenToWorldPoint(Input.mousePosition));
-        Debug.Log(position);
+        Vector2 position = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        int x = Mathf.RoundToInt(position.x);
+        int y = Mathf.RoundToInt(position.y);
 
-        Cell cell = board.GetCell(position.x, position.y);
+        board.RevealCell(x, y);
+    }
+    void FlagCell()
+    {
+        Vector2 position = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        int x = Mathf.RoundToInt(position.x);
+        int y = Mathf.RoundToInt(position.y);
 
+        board.FlagCell(x, y);
+    }
 
+    void NewGame()
+    {
+        canInput = false;
+        StartCoroutine(DelayTime(2f));
+    }
+
+    IEnumerator DelayTime(float time)
+    {
+        yield return new WaitForSecondsRealtime(time);
+        SceneManager.LoadScene(0);
     }
 }

@@ -7,16 +7,20 @@ public class Cell : MonoBehaviour
     public enum Type { Number, Mine, Flag, Exploded, Unknown }
     public Type type;
 
-    bool isRevealed;
-    bool isFlagged;
-    bool isExploded;
+    public bool isRevealed;
+    public bool isFlagged;
+    public bool isExploded;
+    public int index;
 
     public SpriteRenderer spriteRdr;
     void Awake()
     {
         spriteRdr = GetComponent<SpriteRenderer>();
     }
-
+    void Start()
+    {
+        isRevealed = isFlagged = isExploded = false;
+    }
     // Update is called once per frame
     void Update()
     {
