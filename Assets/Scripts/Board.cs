@@ -1,60 +1,129 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Tilemaps;
-
 public class Board : MonoBehaviour
 {
-    public Tilemap tilemap;
-    public Tile tileUnknown, tileMine, tileExplored, tileFlag;
-    public List<Tile> tileNumbers = new List<Tile>();
-
-    public void Awake()
+    [SerializeField] Sprite[] cellNumberSpt;
+    [SerializeField] Sprite[] cellSpecialSpt;
+    [SerializeField] Cell cellPrefab;
+    int width, height, mine;
+    Cell[,] cells;
+    Cell[,] coverCells;
+    void Awake()
     {
-        tilemap = GetComponent<Tilemap>();
+
     }
-    public void Draw(Cell[,] state)
+    void Start()
     {
-        int width = state.GetLength(0);
-        int height = state.GetLength(1);
 
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+
+    }
+
+    public void SetUpNewGame()
+    {
+        GetBoardSize();
+        DrawBoard();
+        SetMine();
+    }
+    void GetBoardSize()
+    {
+        width = GameManager.instance.GetWidth();
+        height = GameManager.instance.GetHeight();
+        mine = GameManager.instance.GetMineNumber();
+        cells = new Cell[width, height];
+    }
+
+    /**********************************************************************************************************/
+
+    void DrawBoard()
+    {
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
             {
-                Cell cell = state[x, y];
-                tilemap.SetTile(cell.position, GetTile(cell));
+                cells[x, y] = Instantiate(cellPrefab, new Vector2(x, y), Quaternion.identity);
+                cells[x, y].type = Cell.Type.Unknown;
             }
         }
+    }
+    /**********************************************************************************************************/
 
-    }
-    Tile GetTile(Cell cell)
+    void SetMine()
     {
-        if (cell.revealed)
+        int c = 0;
+
+        while (c < mine)
         {
-            return GetRevealedTile(cell);
+            int x = Random.Range(0, width);
+            int y = Random.Range(0, height);
+
+            if (cells[x, y].type == Cell.Type.Mine) continue;
+
+            cells[x, y].type = Cell.Type.Mine;
+            cells[x, y].spriteRdr.sprite = cellSpecialSpt[1];
+            c++;
         }
-        else if (cell.flagged)
+    }
+
+    /**********************************************************************************************************/
+
+    void SetNumber()
+    {
+        for (int x = 0; x < width; x++)
         {
-            return tileFlag;
+            for (int y = 0; y < height; y++)
+            {
+                if (CheckMine(x, y)) continue;
+
+                int count = 0;
+
+                for (int i = -1; i <= 1; i++)
+                {
+                    for (int j = -1; j <= 1; j++)
+                    {
+                        if (CheckMine(x + i, y + j)) count++;
+                    }
+                }
+
+                CreateCell(x, y, cellNumberSpt[count], Cell.Type.Number);
+            }
         }
+    }
+
+    /**********************************************************************************************************/
+
+    void CreateCell(int x, int y, Sprite sprite, Cell.Type type)
+    {
+        cells[x, y] = Instantiate(cellPrefab, new Vector2(x, y), Quaternion.identity);
+        cells[x, y].GetComponent<SpriteRenderer>().sprite = sprite;
+        cells[x, y].type = type;
+        cells[x, y].transform.parent = transform;
+    }
+
+    /**********************************************************************************************************/
+
+    bool CheckMine(int x, int y)
+    {
+        if (x < 0 || y < 0 || x >= width || y >= height) return false;
+
+        if (cells[x, y] == null) return false;
+
+        if (cells[x, y].type == Cell.Type.Mine)
+            return true;
         else
-        {
-            return tileUnknown;
-        }
+            return false;
     }
-    Tile GetRevealedTile(Cell cell)
+
+    /**********************************************************************************************************/
+    /**********************************************************************************************************/
+
+    public Cell GetCell(float x, float y)
     {
-        switch (cell.type)
-        {
-            case Cell.Type.Empty: return tileNumbers[0];
-            case Cell.Type.Mine: if (cell.exploded) return tileExplored; else return tileMine;
-            case Cell.Type.Number: return GetNumberTile(cell);
-            default: return null;
-        }
-    }
-    Tile GetNumberTile(Cell cell)
-    {
-        return tileNumbers[cell.number];
+        return cells[(int)x, (int)y];
     }
 }

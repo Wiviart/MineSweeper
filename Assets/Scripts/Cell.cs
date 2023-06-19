@@ -4,13 +4,27 @@ using UnityEngine;
 
 public class Cell : MonoBehaviour
 {
-    public enum Type { Invalid, Empty, Mine, Number }
+    public enum Type { Number, Mine, Flag, Exploded, Unknown }
     public Type type;
-    public Vector3Int position;
-    public int number;
-    public bool revealed;
-    public bool flagged;
-    public bool exploded;
 
+    bool isRevealed;
+    bool isFlagged;
+    bool isExploded;
 
+    public SpriteRenderer spriteRdr;
+    void Awake()
+    {
+        spriteRdr = GetComponent<SpriteRenderer>();
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+
+    }
+    public void SetCell(Vector2 position, Type type)
+    {
+        transform.position = position;
+        this.type = type;
+    }
 }
