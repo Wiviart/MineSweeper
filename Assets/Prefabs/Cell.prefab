@@ -96,3 +96,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   type: 1
+  isRevealed: 0
+  isFlagged: 0
+  isExploded: 0
+  index: 0
+  spriteRdr: {fileID: 0}

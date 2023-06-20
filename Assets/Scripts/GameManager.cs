@@ -17,6 +17,7 @@ public class GameManager : MonoBehaviour
         GetGameComponents();
     }
 
+
     Board board;
     void GetGameComponents()
     {
@@ -31,31 +32,46 @@ public class GameManager : MonoBehaviour
         endgameAction?.Invoke();
     }
 
+    public Action wingameAction;
+    public void WingameTrigger()
+    {
+        wingameAction?.Invoke();
+    }
+
     /**********************************************************************************************************/
 
     [SerializeField][Range(1, 7)] int difficult;
     void Start()
     {
+        SetSizeAndDifficult();
         CenterCamera();
         SetMineNumber(difficult);
         board.SetUpNewGame();
 
-        endgameAction += NewGame;
+        endgameAction += StopInput;
+        wingameAction += StopInput;
     }
 
-    bool canInput = true;
+    public void SetSizeAndDifficult()
+    {
+        difficult = Difficult.instance.difficult;
+        width = Difficult.instance.width;
+        height = Difficult.instance.height;
+    }
+    public bool canInput = true;
     void Update()
     {
-        if (canInput)
-        {
-            if (Input.GetMouseButtonDown(0)) RevealCell();
-            if (Input.GetMouseButtonDown(1)) FlagCell();
-        }
+        if (!canInput) return;
+
+        if (Input.GetMouseButtonDown(0)) RevealCell();
+        if (Input.GetMouseButtonDown(1)) FlagCell();
+        if (Input.GetKeyDown(KeyCode.Q)) WingameTrigger();
+
 
         if (board.AllNumberCellReveal())
         {
             Debug.Log("Win");
-            EndgameTrigger();
+            WingameTrigger();
         }
     }
     void CenterCamera()
@@ -113,12 +129,14 @@ public class GameManager : MonoBehaviour
         board.FlagCell(x, y);
     }
 
-    void NewGame()
+    public void StopInput()
     {
         canInput = false;
-        StartCoroutine(DelayTime(2f));
     }
-
+    public void StartInput()
+    {
+        canInput = true;
+    }
     IEnumerator DelayTime(float time)
     {
         yield return new WaitForSecondsRealtime(time);

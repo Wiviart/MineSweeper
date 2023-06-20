@@ -48,6 +48,7 @@ public class Board : MonoBehaviour
             for (int y = 0; y < height; y++)
             {
                 cells[x, y] = Instantiate(cellPrefab, new Vector2(x, y), Quaternion.identity);
+                cells[x, y].transform.parent = transform;
                 cells[x, y].type = Cell.Type.Unknown;
             }
         }
@@ -66,7 +67,6 @@ public class Board : MonoBehaviour
             if (cells[x, y].type == Cell.Type.Mine) continue;
 
             cells[x, y].type = Cell.Type.Mine;
-            // cells[x, y].spriteRdr.sprite = cellSpecialSpt[1];
             c++;
         }
     }
@@ -91,7 +91,6 @@ public class Board : MonoBehaviour
                     }
                 }
 
-                // cells[x, y].spriteRdr.sprite = cellNumberSpt[count];
                 cells[x, y].type = Cell.Type.Number;
                 cells[x, y].index = count;
             }
