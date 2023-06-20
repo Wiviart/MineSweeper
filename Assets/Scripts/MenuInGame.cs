@@ -55,6 +55,8 @@ public class MenuInGame : MonoBehaviour
     {
         inGameMenu.SetActive(false);
         loseEffect.SetActive(true);
+        loseEffect.GetComponentInChildren<ParticleSystem>().transform.localScale = Vector3.one * Camera.main.orthographicSize / 10;
+        loseEffect.transform.position = new Vector3(Camera.main.transform.position.x, Camera.main.transform.position.y + Camera.main.orthographicSize, 0);
 
         announce.text = $"Game Over!";
 
@@ -65,6 +67,25 @@ public class MenuInGame : MonoBehaviour
     {
         inGameMenu.SetActive(false);
         winEffect.SetActive(true);
+
+        List<ParticleSystem> effects = new List<ParticleSystem>();
+
+        ParticleSystem[] x = winEffect.GetComponentsInChildren<ParticleSystem>();
+
+        foreach (ParticleSystem e in x)
+        {
+            ParticleSystem y = e.GetComponentInChildren<ParticleSystem>();
+            effects.Add(e);
+            effects.Add(y);
+        }
+
+        foreach (ParticleSystem e in effects)
+        {
+            e.transform.localScale = Vector3.one * Camera.main.orthographicSize / 10;
+        }
+        
+        winEffect.transform.localScale = Vector3.one * Camera.main.orthographicSize / 10;
+        winEffect.transform.position = new Vector3(Camera.main.transform.position.x, Camera.main.transform.position.y - Camera.main.orthographicSize * 1.5f, 0);
 
         announce.text = $"You're win!";
 

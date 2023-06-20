@@ -15,8 +15,8 @@ public class Difficult : MonoBehaviour
     }
     void Start()
     {
-        width = 9;
-        height = 9;
+        width = 18;
+        height = 18;
     }
 
     void Update()
@@ -35,7 +35,7 @@ public class Difficult : MonoBehaviour
 
     public int width;
     public int height;
- 
+
     public void CancelButton()
     {
         SceneManager.LoadScene(0);
